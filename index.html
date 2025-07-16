@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🌟 Ultimate Study Arena</title>
   <style>
     body {
@@ -218,7 +218,7 @@
         box.className = "day-box";
         box.innerHTML = `Day ${day}${isOff ? " (Off Day)" : ""}<br>` +
           tasks.map((t, i) =>
-            `<input type='checkbox'> ${isOff ? t[i + 1] : t[0]}<br>`
+            `<input type='checkbox' data-day='${day}' data-task='${i}'> ${isOff ? t[i + 1] : t[0]}<br>`
           ).join("");
         container.appendChild(box);
       }
@@ -246,7 +246,10 @@
       totalDhruv += d;
       recapList.push(`Pratik: ${p} coins | Dhruv: ${d} coins`);
       weekCounter++;
-      document.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = false);
+      document.querySelectorAll("input[type='checkbox']").forEach((cb, i) => {
+        cb.checked = false;
+        localStorage.removeItem(`checkbox_${i}`);
+      });
       document.getElementById("pratikCoins").innerText = "0";
       document.getElementById("dhruvCoins").innerText = "0";
       updateRecap();
@@ -267,14 +270,17 @@
       createDayBoxes("dhruvDays");
       updateRecap();
       updateLog();
-      document.querySelectorAll("input[type='checkbox']").forEach(cb =>
+      document.querySelectorAll("input[type='checkbox']").forEach((cb, index) => {
+        const saved = localStorage.getItem(`checkbox_${index}`);
+        if (saved === "true") cb.checked = true;
+
         cb.addEventListener("change", () => {
+          localStorage.setItem(`checkbox_${index}`, cb.checked);
           calculateCoins(0, "pratikCoins");
           calculateCoins(1, "dhruvCoins");
-        })
-      );
+        });
+      });
     });
   </script>
 </body>
 </html>
-
