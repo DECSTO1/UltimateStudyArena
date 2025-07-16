@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌟 Ultimate Study Arena</title>
+  <style>
+    body {
+      background: #0d0d2b;
+      color: #00f0ff;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #00f0ff;
+      text-shadow: 0 0 10px #00f0ff;
+    }
+    .container {
+      padding: 20px;
+    }
+    .user-section {
+      border: 2px solid #00f0ff;
+      padding: 10px;
+      margin: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #00f0ff;
+    }
+    .days-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .day-box {
+      border: 2px solid #fff;
+      padding: 10px;
+      background: #1a1a3d;
+      border-radius: 10px;
+      width: 200px;
+    }
+    .coin-bar {
+      font-weight: bold;
+      margin-top: 10px;
+      color: gold;
+    }
+    .recap-box {
+      background: #111;
+      padding: 20px;
+      margin: 20px;
+      border-radius: 12px;
+      border: 1px solid #00f0ff;
+    }
+    .recap-entry {
+      padding: 5px 0;
+      display: flex;
+      justify-content: space-between;
+    }
+    .total-entry {
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid #00f0ff;
+      font-weight: bold;
+      text-align: center;
+      color: lightgreen;
+    }
+    .week-switch, .shop-btn {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .week-switch button, .shop-btn button {
+      background-color: #00f0ff;
+      color: #000;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 0 10px #00f0ff;
+      margin: 0 5px;
+    }
+    .shop {
+      display: none;
+      background: #111;
+      border: 1px solid #00f0ff;
+      padding: 15px;
+      margin: 20px auto;
+      width: 300px;
+      border-radius: 10px;
+      color: white;
+    }
+    .shop h3 {
+      color: gold;
+      text-align: center;
+      text-shadow: 0 0 8px #ff0;
+    }
+    .shop ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    .shop li {
+      padding: 5px 0;
+    }
+    .log {
+      background: #000;
+      border: 1px solid #00f0ff;
+      color: #0f0;
+      padding: 10px;
+      margin: 20px;
+      border-radius: 8px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎮 Ultimate Study Arena</h1>
+
+  <div class="recap-box" id="recap"></div>
+
+  <div class="week-switch">
+    <button onclick="changeWeek()">🔄 Change Week</button>
+  </div>
+  <div class="shop-btn">
+    <button onclick="toggleShop()">🛒 Open Shop</button>
+  </div>
+  <div class="shop" id="shop">
+    <h3>🏪 Rewards Shop</h3>
+    <ul></ul>
+  </div>
+
+  <div class="container">
+    <div class="user-section">
+      <h2>PRATIK</h2>
+      <div class="days-grid" id="pratikDays"></div>
+      <div class="coin-bar">🪙 Pratik's Coins: <span id="pratikCoins">0</span></div>
+    </div>
+    <div class="user-section">
+      <h2>DHRUV</h2>
+      <div class="days-grid" id="dhruvDays"></div>
+      <div class="coin-bar">🪙 Dhruv's Coins: <span id="dhruvCoins">0</span></div>
+    </div>
+  </div>
+
+  <div class="log" id="logBox">
+    <strong>🧾 Purchase Log:</strong>
+    <ul id="log"></ul>
+  </div>
+
+  <script>
+    const tasks = [["Watch 5–6 Lectures", 10, "Watch 7–8 Lectures", 15], ["Solve 2 DPPs", 15, "Solve 3–4 DPPs", 25]];
+    const rewards = [
+      { name: "🍔 McDonald's", cost: 500 },
+      { name: "🎬 Movie", cost: 1000 },
+      { name: "🌆 Mumbai Plan", cost: 1500 },
+      { name: "🎮 PS5", cost: 200 },
+      { name: "🧱 Roblox", cost: 100 }
+    ];
+
+    let weekCounter = Number(localStorage.getItem("week") || 0);
+    let totalPratik = Number(localStorage.getItem("pratik") || 0);
+    let totalDhruv = Number(localStorage.getItem("dhruv") || 0);
+    const recapList = JSON.parse(localStorage.getItem("recap") || "[]");
+    const purchaseLog = JSON.parse(localStorage.getItem("log") || "[]");
+
+    function toggleShop() {
+      const shop = document.getElementById("shop");
+      const list = shop.querySelector("ul");
+      if (list.children.length === 0) buildShop();
+      shop.style.display = shop.style.display === "none" ? "block" : "none";
+    }
+
+    function buildShop() {
+      const list = document.getElementById("shop").querySelector("ul");
+      rewards.forEach((r, i) => {
+        const li = document.createElement("li");
+        li.innerHTML = `${r.name} - ${r.cost} pts <button onclick="buyReward(${i})">Buy</button>`;
+        list.appendChild(li);
+      });
+    }
+
+    function buyReward(index) {
+      const user = prompt("Who is buying? (pratik / dhruv)").toLowerCase();
+      const pin = prompt("Enter PIN:");
+      if ((user === "pratik" && pin !== "9515") || (user === "dhruv" && pin !== "1234")) return alert("Wrong PIN");
+      if (user === "pratik" && totalPratik < rewards[index].cost) return alert("Not enough coins");
+      if (user === "dhruv" && totalDhruv < rewards[index].cost) return alert("Not enough coins");
+      if (user === "pratik") totalPratik -= rewards[index].cost;
+      else totalDhruv -= rewards[index].cost;
+      const logEntry = `${new Date().toLocaleString()} - ${user.toUpperCase()} bought ${rewards[index].name}`;
+      purchaseLog.unshift(logEntry);
+      updateLog();
+      updateRecap();
+      alert(`${user.toUpperCase()} bought ${rewards[index].name} 🎉`);
+      saveData();
+    }
+
+    function updateLog() {
+      const logBox = document.getElementById("log");
+      logBox.innerHTML = purchaseLog.slice(0, 10).map(item => `<li>${item}</li>`).join("");
+    }
+
+    function updateRecap() {
+      const recapBox = document.getElementById("recap");
+      recapBox.innerHTML = `<h2>🌐 Weekly Points Recap</h2>` +
+        recapList.map((r, i) =>
+          `<div class='recap-entry'><span><strong>Week ${i + 1}:</strong></span><span>${r}</span></div>`
+        ).reverse().join("") +
+        `<div class='total-entry'>Total Coins — Pratik: ${totalPratik} | Dhruv: ${totalDhruv}</div>`;
+    }
+
+    function createDayBoxes(id) {
+      const container = document.getElementById(id);
+      for (let day = 1; day <= 7; day++) {
+        const isOff = day > 5;
+        const box = document.createElement("div");
+        box.className = "day-box";
+        box.innerHTML = `Day ${day}${isOff ? " (Off Day)" : ""}<br>` +
+          tasks.map((t, i) =>
+            `<input type='checkbox'> ${isOff ? t[i + 1] : t[0]}<br>`
+          ).join("");
+        container.appendChild(box);
+      }
+    }
+
+    function calculateCoins(userIndex, outputId) {
+      const checkboxes = document.querySelectorAll(".user-section")[userIndex].querySelectorAll("input[type='checkbox']");
+      let coins = 0;
+      checkboxes.forEach((cb, i) => {
+        if (cb.checked) {
+          const day = Math.floor(i / 2);
+          coins += (day >= 5) ? (i % 2 === 0 ? 15 : 25) : (i % 2 === 0 ? 10 : 15);
+        }
+      });
+      document.getElementById(outputId).innerText = coins;
+      return coins;
+    }
+
+    function changeWeek() {
+      const pin = prompt("Enter password to change week:");
+      if (pin !== "9515") return alert("Wrong PIN");
+      const p = calculateCoins(0, "pratikCoins");
+      const d = calculateCoins(1, "dhruvCoins");
+      totalPratik += p;
+      totalDhruv += d;
+      recapList.push(`Pratik: ${p} coins | Dhruv: ${d} coins`);
+      weekCounter++;
+      document.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = false);
+      document.getElementById("pratikCoins").innerText = "0";
+      document.getElementById("dhruvCoins").innerText = "0";
+      updateRecap();
+      saveData();
+      alert("✅ Week changed and coins recorded!");
+    }
+
+    function saveData() {
+      localStorage.setItem("week", weekCounter);
+      localStorage.setItem("pratik", totalPratik);
+      localStorage.setItem("dhruv", totalDhruv);
+      localStorage.setItem("recap", JSON.stringify(recapList));
+      localStorage.setItem("log", JSON.stringify(purchaseLog));
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      createDayBoxes("pratikDays");
+      createDayBoxes("dhruvDays");
+      updateRecap();
+      updateLog();
+      document.querySelectorAll("input[type='checkbox']").forEach(cb =>
+        cb.addEventListener("change", () => {
+          calculateCoins(0, "pratikCoins");
+          calculateCoins(1, "dhruvCoins");
+        })
+      );
+    });
+  </script>
+</body>
+</html>
+
